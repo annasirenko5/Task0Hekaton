@@ -99,17 +99,11 @@ struct Relation {
     Row* lookup(uint64_t a) {
         // TODO
         Row * poten = index[hash(a)];
-        while(poten != nullptr || poten->a != a)
+        while(poten != nullptr && poten->a != a)
         {
             poten = poten->next;
         }
-        if(poten == nullptr)
-        {
-            Row * row = new Row();
-            row->a = a;
-            size++;
-            return row;
-        }
+        if(poten == nullptr) return nullptr;
         return poten;
     }
     
@@ -118,7 +112,7 @@ struct Relation {
         // TODO
         Row * needed = lookup(row->a);
         Row * prev = index[hash(row->a)];
-        while(prev != needed || prev->next != needed){
+        while(prev != needed && prev->next != needed){
             prev = prev->next;
         }
         
