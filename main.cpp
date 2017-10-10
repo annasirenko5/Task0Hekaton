@@ -51,7 +51,7 @@ struct Relation {
         // Check that sizeIndex is a power of two
         assert((sizeIndex&(sizeIndex-1))==0);
         // TODO
-        index = new Row * [sizeIndex];
+        index = new Row* [sizeIndex];
         for(uint64_t i = 0; i < sizeIndex; i++){
             index[i] = nullptr;
         }
@@ -60,16 +60,16 @@ struct Relation {
     // Destroy relation (free all memory)
     ~Relation() {
         // TODO
-        for(uint64_t i = 0; i< size; i++){
+        for(uint64_t i = 0; i< sizeIndex; i++){
             if(index[i]!=nullptr)
             {
-                Row * r = index[i];
-                Row * temp_r = nullptr;
+                Row* r = index[i];
+                Row* temp_r = nullptr;
                 while(r!=nullptr)
                 {
                     temp_r = r;
-                    delete temp_r;
                     r = r->next;
+                    delete temp_r;
                 }
             }
         }
@@ -79,13 +79,14 @@ struct Relation {
     // Insert a new row
     void insert(uint64_t a,uint64_t b,uint64_t c) {
         // TODO
-        Row * rnew = new Row();
+		uint64_t ind = hash(a);
+        Row* rnew = new Row();
         rnew->a = a;
         rnew->b = b;
         rnew->c = c;
         rnew->next = nullptr;
-        if(index[hash(a)] == nullptr){
-            index[hash(a)] = rnew;
+        if(index[ind] == nullptr){
+            index[ind] = rnew;
         } else
         {
             Row * r = index[hash(a)];
@@ -110,25 +111,21 @@ struct Relation {
     // Remove a row
     void remove(Row* row) {
         // TODO
-        Row * needed = lookup(row->a);
+        // if(row == nullptr) return;
+        // if row is invalid ?
+		
         Row * prev = index[hash(row->a)];
-        while(prev != needed && prev->next != needed){
-            prev = prev->next;
+        if(prev != row){
+            while(prev->next != row){
+                prev = prev->next;
+            }
+            prev->next = row->next;
+        } else {
+            index[hash(row->a)] = row->next;
         }
-        
-        if(prev == needed){
-            delete needed;
-            size--;
-            needed = nullptr;
-        }
-        
-        else {
-            prev->next = needed->next;
-            delete needed;
+            delete row;
             size--;
         }
-        
-    }
     
     // Computes index into hash table for attribute value a
     uint64_t hash(uint64_t a) {
@@ -181,6 +178,7 @@ int main() {
     }
     
     {
+        
         random_shuffle(v.begin(),v.end());
         // Delete all entries
         auto start=high_resolution_clock::now();
@@ -190,6 +188,7 @@ int main() {
             R.remove(r2);
             assert(!R.lookup(r.a));
         }
+       
         cout << "remove " << duration_cast<duration<double>>(high_resolution_clock::now()-start).count() << "s" << endl;
         // Make sure the table is empty
         for (unsigned i=0; i<R.sizeIndex; i++)
@@ -198,3 +197,4 @@ int main() {
     
     return 0;
 }
+
